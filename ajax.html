@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width,initial-scale=1,minimum-scale=1,maximum-scale=1,user-scalable=no" />
+		<title></title>
+		<script src="js/mui.min.js"></script>
+		<script src="js/jquery-1.9.1.min.js"></script>
+		<link href="css/mui.min.css" rel="stylesheet" />
+
+	</head>
+
+	<body>
+		<form class="mui-input-group">
+			<div class="mui-input-row">
+				<input type="text" class="mui-input-clear" placeholder="城市名">
+			</div>
+			<div class="mui-button-row">
+				<button type="button" data-loading-icon="mui-spinner mui-spinner-custom" class="mui-btn mui-btn-positive">搜索</button>
+			</div>
+		</form>
+		<div class="mui-input-row" style="margin: 10px 5px;">
+			<textarea rows="20" placeholder="这里显示空气质量信息" disabled="disabled"></textarea>
+		</div>
+
+		<script type="text/javascript" charset="utf-8">
+			mui('.mui-button-row').on('tap', '.mui-btn', function(e) {
+				mui(this).button('loading');
+				setTimeout(function() {
+					mui(this).button('reset');
+				}.bind(this), 500);
+			});
+			mui('.mui-button-row').on('tap', 'button', e => {
+				var city = $('.mui-input-clear').val();
+				//		$('textarea').val(JSON.stringify({"name":"wfk","age":23}));
+				//		return;
+				if(city != null && city.trim().length > 0) {
+					var url = 'http://web.juhe.cn:8080/environment/air/cityair';
+					mui.ajax(url, {
+						data: {
+							city: city,
+							key: 'bf3a728d7f8abcb9987a72d025bc2d9e'
+						},
+						dataType: 'json', //服务器返回json格式数据
+						type: 'get', //HTTP请求类型
+						success: function(data) {
+							//							var obj = JSON.stringify(data);
+							//							console.log(obj);
+							console.log(data.resultcode);
+
+							if(data.resultcode == 200) {
+								plus.nativeUI.alert("查询成功！");
+								var out = '';
+								//城市今日
+								var today = data.result[0].citynow;
+								//详细信息
+								var city = today.city;
+								var AQI = today.AQI;
+								var quality = today.quality;
+								var date = today.date;
+
+								//城市各地区
+								var area = data.result[0].lastMoniData;
+								var areaOut = '';
+								//地区详细信息
+								for(var i in area) {
+									areaOut += "地区：" + area[i].city + " " + "AQI：" + area[i].AQI + " " + "日PM2.5：" + area[i]['PM2.5Day'] + " " + "空气质量：" + area[i].quality + "\n\n"
+								}
+								console.log(areaOut);
+								out = "城市：" + city + "\n" + "AQI：" + AQI + "\n" + "空气质量：" + quality + "\n" + "日期：" + date + "\n\n" + areaOut;
+								$('textarea').val(out);
+								plus.nativeUI.closeWaiting();
+							} else {
+								plus.nativeUI.alert("查询失败！")
+							}
+						}
+					});
+				} else {
+					plus.nativeUI.alert("输入不能为空！")
+				}
+			})
+		</script>
+	</body>
+
+</html>
